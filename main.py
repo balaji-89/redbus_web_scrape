@@ -1,7 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from scrapping_src import get_route_link_map, extract_bus_info
-from sql_src import connect_sql_server,add_route, add_bus_info
+from sql_src import add_route, add_bus_info
+import mysql.connector
 
 
 if __name__ == "__main__":
@@ -15,6 +16,16 @@ if __name__ == "__main__":
     driver.quit()
 
     #saving to sql
-    cursor = connect_sql_server('localhost', 'root', 'password')
+    con = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='password'
+            )
+    cursor = con.cursor()
     add_route(cursor,route_link_map)
     add_bus_info(cursor,bus_info)
+    con.commit()
+
+    
+    
+    

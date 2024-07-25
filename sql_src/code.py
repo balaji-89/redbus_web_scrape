@@ -1,15 +1,17 @@
 
 import mysql.connector
+import pandas as pd
 
 def connect_sql_server(host_name: str, user_name: str, password: str):
     try: 
         con = mysql.connector.connect(
         host=host_name,
         user=user_name,
-        password=password
+        password=password,
+        database = 'red_bus_scrape'
         )
         cursor = con.cursor()
-        return cursor
+        return cursor,con
     except Exception as e:
         raise e
 
@@ -63,7 +65,29 @@ def add_bus_info(cursor, values:list = None):
 
 
 
-
+def fetch_data():
+    _,conn = connect_sql_server('localhost','root','password')
+    query = """
+    SELECT 
+        bus_info.id AS bus_id, 
+        route.route, 
+        route.route_link, 
+        bus_info.bus_name, 
+        bus_info.bus_type, 
+        bus_info.duration, 
+        bus_info.departure_time, 
+        bus_info.reaching_time, 
+        bus_info.price, 
+        bus_info.available_seats, 
+        bus_info.rating 
+    FROM 
+        bus_info 
+    JOIN 
+        route ON bus_info.route_id = route.id
+    """
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df
 
 
 
