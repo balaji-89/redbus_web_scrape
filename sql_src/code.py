@@ -3,6 +3,17 @@ import mysql.connector
 import pandas as pd
 
 def connect_sql_server(host_name: str, user_name: str, password: str):
+    """
+    Connects to the MySQL server.
+
+    Parameters:
+        host_name (str): The hostname of the MySQL server.
+        user_name (str): The username for the MySQL server.
+        password (str): The password for the MySQL server.
+
+    Returns:
+        tuple: A tuple containing the MySQL cursor and connection objects.
+    """
     try: 
         con = mysql.connector.connect(
         host=host_name,
@@ -17,6 +28,14 @@ def connect_sql_server(host_name: str, user_name: str, password: str):
 
 
 def create_database(database_name: str, cursor, use_database = True):
+    """
+    Creates a database if it does not already exist.
+
+    Parameters:
+        database_name (str): The name of the database to create.
+        cursor (MySQLCursor): The MySQL cursor object.
+        use_database (bool): Whether to switch to the new database after creation.
+    """
     try:
         query = f"create database if not exists {database_name}"
         cursor.execute(query)
@@ -27,16 +46,43 @@ def create_database(database_name: str, cursor, use_database = True):
 
 
 def create_table(cursor,table_name:str,attributes:str):
+    """
+    Creates a table with specified attributes if it does not already exist.
+
+    Parameters:
+        cursor (MySQLCursor): The MySQL cursor object.
+        table_name (str): The name of the table to create.
+        attributes (str): The attributes of the table in SQL syntax.
+
+    Raises:
+        Exception: If an error occurs during table creation.
+    """
     cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS {table_name} ({attributes})''' )
 
 
 def insert_values(cursor, table_name:str, attributes:tuple,values:list):
+    """
+    Inserts multiple values into a specified table.
+
+    Parameters:
+        cursor (MySQLCursor): The MySQL cursor object.
+        table_name (str): The name of the table to insert values into.
+        attributes (tuple): The attributes of the table as a tuple.
+        values (list): The list of values to insert.
+    """
     cursor.executemany(f'''INSERT INTO {table_name} {str(attributes)} VALUES {str(('%s')*len(attributes))}''', values)
 
 
 
 def add_route(cursor, values:list = None):
+    """
+    Adds route information to the database.
+
+    Parameters:
+        cursor (MySQLCursor): The MySQL cursor object.
+        values (list): A list of route values to insert.
+    """
     create_database(database_name='red_bus_scrape',cursor=cursor)
     create_table(cursor=cursor,table_name='route', attributes='id INT PRIMARY_KEY, route VARCHAR(255), route_link VARCHAR(255)')
     if values:
@@ -44,6 +90,13 @@ def add_route(cursor, values:list = None):
 
 
 def add_bus_info(cursor, values:list = None):
+    """
+    Adds bus information to the database.
+
+    Parameters:
+        cursor (MySQLCursor): The MySQL cursor object.
+        values (list): A list of bus information values to insert.
+    """
     create_database(database_name='bus_info',cursor=cursor)
     create_table(cursor=cursor,table_name='bus_info',attributes='''id INT PRIMARY KEY,
                                                                     route_id INT,
@@ -66,6 +119,12 @@ def add_bus_info(cursor, values:list = None):
 
 
 def fetch_data():
+    """
+    Fetches and returns bus information and corresponding route details from the database.
+
+    Returns:
+        DataFrame: A pandas DataFrame containing the fetched data.
+    """
     _,conn = connect_sql_server('localhost','root','password')
     query = """
     SELECT 

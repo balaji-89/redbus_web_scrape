@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
-from scrapping_src import get_route_link_map, extract_bus_info
-from sql_src import add_route, add_bus_info
+from scrapping_src.code import get_route_link_map, extract_bus_info
+from sql_src.code import add_route, add_bus_info
 import mysql.connector
 
 

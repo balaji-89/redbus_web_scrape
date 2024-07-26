@@ -6,7 +6,17 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 
-def load_page(driver, need_names = False):
+def load_page(driver):
+    """
+    Loads the Redbus webpage and locates carousel elements.
+
+    Parameters:
+        driver (webdriver): The Selenium WebDriver instance.
+
+    Returns:
+        tuple: A tuple containing lists of carousel logos, the next arrow element, and carousel names.
+    """
+
     driver.get('https://www.redbus.in/')
     time.sleep(2)
 
@@ -15,14 +25,22 @@ def load_page(driver, need_names = False):
 
     next_arrow = driver.find_element(By.XPATH, '//*[@id="Carousel"]/span/span/i')
     coursal_logos = driver.find_elements(By.CSS_SELECTOR, 'img.rtcLogo')
-    # if need_names:
     coursal_names = driver.find_elements(By.CSS_SELECTOR, 'div.rtcName')
     return coursal_logos, next_arrow,coursal_names
-    # return coursal_logos, next_arrow
 
 
 def get_route_link_map(driver, action):
-        coursal_logos,next_arrow,coursal_names= load_page(need_names=True)
+        """
+        Extracts route links from the carousel on the Redbus webpage.
+
+        Parameters:
+            driver (webdriver): The Selenium WebDriver instance.
+            action (ActionChains): Selenium ActionChains instance for performing actions.
+
+        Returns:
+            dict: A dictionary mapping route names to their links.
+        """
+        coursal_logos,next_arrow,coursal_names= load_page(driver)
         next_turns = 0
 
         routes_link = {}
@@ -30,7 +48,7 @@ def get_route_link_map(driver, action):
         for val in range(len(coursal_logos)):
             
             try:
-                coursal_logos,next_arrow,coursal_names= load_page()
+                coursal_logos,next_arrow,coursal_names= load_page(driver)
                 if next_turns!=0:
                     for _ in range(next_turns):
                         next_arrow.click()
@@ -59,7 +77,7 @@ def get_route_link_map(driver, action):
 
             except Exception as e: 
                 try:
-                    coursal_logos,next_arrow,coursal_names = load_page()
+                    coursal_logos,next_arrow,coursal_names = load_page(driver)
                     for _ in range(next_turns+1):
                         next_arrow.click()
                         time.sleep(1)
@@ -87,11 +105,21 @@ def get_route_link_map(driver, action):
         return routes_link
 
 def extract_bus_info(driver,route_link_map):
+    """
+    Extracts bus information for each route from the Redbus webpage.
+
+    Parameters:
+        driver (webdriver): The Selenium WebDriver instance.
+        route_link_map (dict): A dictionary mapping route names to their links.
+
+    Returns:
+        tuple: A tuple containing updated route links, bus information, and filtered routes.
+    """
     updated_route_link = []
     final_bus = {}
     filtered_routes = []
 
-    for primary_key, (key, val) in enumerate(route_link_map):
+    for primary_key, (key, val) in enumerate(route_link_map.items()):
             try:
                 driver.get(val)
                 time.sleep(5)
@@ -114,7 +142,6 @@ def extract_bus_info(driver,route_link_map):
                         li_element = li_list[ele_idx]
                         if li_element.get_attribute('class') !=  'rtcinlineFilterContainer' and li_element.get_attribute('ID') != None:
                             try:
-                                # card_info = li_element.find_element(By.XPATH, f'//*[@id="{li_element.get_attribute('ID')}"]/div/div[1]/div[1]')
                                 card_info = li_element.find_element(By.CSS_SELECTOR, 'div.clearfix.row-one')
                                 driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", li_element)
                                 time.sleep(1)
@@ -134,7 +161,6 @@ def extract_bus_info(driver,route_link_map):
                     if li_element.get_attribute('class') !=  'rtcinlineFilterContainer' and li_element.get_attribute('ID') != None:
                         try:
                             card_info = li_element.find_element(By.CSS_SELECTOR, 'div.clearfix.row-one')
-                            # card_info = li_element.find_element(By.XPATH, f'//*[@id="{li_element.get_attribute('ID')}"]/div/div[1]/div[1]')
                             driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", li_element)
                             time.sleep(1)
                             bus_infos.append([card_info.text])
@@ -148,9 +174,17 @@ def extract_bus_info(driver,route_link_map):
 
     return updated_route_link,final_bus,filtered_routes
 
-
-
 def format_scrapped_code(route_link_map, bus_info):
+        """
+        Formats the scraped route and bus information into structured data.
+
+        Parameters:
+            route_link_map (list): A list of routes and their links.
+            bus_info (dict): A dictionary of bus information for each route.
+
+        Returns:
+            tuple: A tuple containing formatted route links and formatted bus information.
+        """
         #initializing primary key for route-link
         formatted_route_link = [[idx]+item for idx, item in enumerate(route_link_map,start=1)]
 
