@@ -41,8 +41,6 @@ python main.py
 ---
 ## Contact
 
-Provide your contact information or a link to your profile or website.
-
 - **Author**: [Balaji J](https://github.com/balaji-89)
 - **Email**: balajiwork3@gmail.com
 
